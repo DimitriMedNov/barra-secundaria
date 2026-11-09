@@ -29,12 +29,12 @@ function boton(icono, nombre, alPulsar) {
 
 export const Barra = GObject.registerClass(
 class Barra extends St.BoxLayout {
-    _init(monitor) {
+    _init(monitor, espacios) {
         super._init({style_class: 'bs-barra', reactive: true, name: `barra-secundaria-${monitor.index}`});
         this._monitor = monitor.index;
+        this._espacios = espacios;
         this._pendiente = 0;
         this._reloj = 0;
-        this._mutter = new Gio.Settings({schema_id: 'org.gnome.mutter'});
         this._interfaz = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
 
         this._escritorios = new St.BoxLayout({style_class: 'bs-escritorios', y_align: Clutter.ActorAlign.CENTER});
@@ -49,7 +49,7 @@ class Barra extends St.BoxLayout {
         this.add_child(this._ventanas);
         this.add_child(derecha);
 
-        const refrescar = () => this._programar();
+        const refrescar = () => this.programar();
         global.display.connectObject(
             'window-created', refrescar,
             'notify::focus-window', refrescar,
@@ -59,7 +59,6 @@ class Barra extends St.BoxLayout {
             'active-workspace-changed', refrescar,
             'workspace-added', refrescar,
             'workspace-removed', refrescar, this);
-        this._mutter.connectObject('changed::workspaces-only-on-primary', refrescar, this);
         this._interfaz.connectObject('changed::clock-format', () => this._tic(), this);
 
         this.connect('destroy', () => this._limpiar());
@@ -72,11 +71,11 @@ class Barra extends St.BoxLayout {
         this._monitor = monitor.index;
         this.set_position(monitor.x, monitor.y);
         this.set_size(monitor.width, Main.panel.height);
-        this._programar();
+        this.programar();
     }
 
     // Muchos avisos llegan juntos (abrir una ventana manda varios): se repinta una vez.
-    _programar() {
+    programar() {
         if (this._pendiente)
             return;
         this._pendiente = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
@@ -86,21 +85,21 @@ class Barra extends St.BoxLayout {
         });
     }
 
+    // También lo llama la extensión cuando cambian los escritorios propios.
     _pintar() {
         this._pintarEscritorios();
         this._pintarVentanas();
     }
 
-    // Los puntos solo tienen sentido si este monitor cambia de escritorio. Con
-    // "workspaces-only-on-primary" (lo normal en GNOME) el secundario se queda fijo y no salen.
+    // Puntos de escritorio. En modo fijo son los escritorios PROPIOS de este monitor (no mueven
+    // el principal); en el otro modo son los de GNOME, que mueven todos los monitores juntos.
     _pintarEscritorios() {
         this._escritorios.destroy_all_children();
+        const propios = this._espacios.encendidos;
         const wm = global.workspace_manager;
-        const n = wm.get_n_workspaces();
-        this._escritorios.visible = !this._mutter.get_boolean('workspaces-only-on-primary') && n > 1;
-        if (!this._escritorios.visible)
-            return;
-        const activo = wm.get_active_workspace_index();
+        const n = propios ? this._espacios.cuantos(this._monitor) : wm.get_n_workspaces();
+        const activo = propios ? this._espacios.activo(this._monitor) : wm.get_active_workspace_index();
+        this._escritorios.visible = n > 1;
         for (let i = 0; i < n; i++) {
             const punto = new St.Button({
                 style_class: i === activo ? 'bs-punto bs-punto-activo' : 'bs-punto',
@@ -109,7 +108,12 @@ class Barra extends St.BoxLayout {
                 can_focus: true,
                 y_expand: true,
             });
-            punto.connect('clicked', () => wm.get_workspace_by_index(i)?.activate(global.get_current_time()));
+            punto.connect('clicked', () => {
+                if (propios)
+                    this._espacios.cambiar(this._monitor, i);
+                else
+                    wm.get_workspace_by_index(i)?.activate(global.get_current_time());
+            });
             this._escritorios.add_child(punto);
         }
     }
@@ -118,7 +122,7 @@ class Barra extends St.BoxLayout {
         this._ventanas.destroy_all_children();
         const foco = global.display.focus_window;
         const rastreador = Shell.WindowTracker.get_default();
-        for (const w of acciones.ventanasDe(this._monitor)) {
+        for (const w of acciones.ventanasDe(this._monitor).filter(v => this._espacios.visible(v))) {
             const caja = new St.BoxLayout({style_class: 'bs-ventana-caja'});
             const app = rastreador.get_window_app(w);
             if (app)
@@ -136,8 +140,8 @@ class Barra extends St.BoxLayout {
             b.connect('clicked', () => acciones.alternar(w));
             w.connectObject(
                 'notify::title', () => titulo.set_text(w.get_title() ?? ''),
-                'notify::minimized', () => this._programar(),
-                'unmanaged', () => this._programar(), b);
+                'notify::minimized', () => this.programar(),
+                'unmanaged', () => this.programar(), b);
             this._ventanas.add_child(b);
         }
     }
@@ -162,7 +166,6 @@ class Barra extends St.BoxLayout {
         if (this._reloj)
             GLib.source_remove(this._reloj);
         this._pendiente = this._reloj = 0;
-        this._mutter.disconnectObject(this);
         this._interfaz.disconnectObject(this);
     }
 });

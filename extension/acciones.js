@@ -7,14 +7,16 @@ import {celdas} from './acomodo.js';
 
 const TIPOS = [Meta.WindowType.NORMAL, Meta.WindowType.DIALOG, Meta.WindowType.MODAL_DIALOG];
 
-// Ventanas que se ven en ese monitor ahora: del escritorio actual (o fijas en todos),
-// sin las que no van en listas de ventanas (paneles, escritorios, emergentes).
+// Ventanas que van en una lista de ventanas: sin paneles, escritorios ni emergentes.
+export function esVentanaDeLista(w) {
+    return TIPOS.includes(w.get_window_type()) && !w.is_skip_taskbar() && !w.is_override_redirect();
+}
+
+// Ventanas de ese monitor en el escritorio actual de GNOME (o fijas en todos).
 export function ventanasDe(monitor) {
     const actual = global.workspace_manager.get_active_workspace();
     return global.display.list_all_windows()
-        .filter(w => TIPOS.includes(w.get_window_type()) &&
-            !w.is_skip_taskbar() &&
-            !w.is_override_redirect() &&
+        .filter(w => esVentanaDeLista(w) &&
             w.get_monitor() === monitor &&
             (w.is_on_all_workspaces() || w.get_workspace() === actual))
         .sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());

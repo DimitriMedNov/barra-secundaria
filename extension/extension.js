@@ -1,16 +1,27 @@
 // Barra secundaria: una barra mínima arriba de cada monitor que NO es el principal.
 // Reloj, ventanas de ese monitor, mover ventana entre monitores, ordenar ventanas
-// (también en monitores verticales) y escritorios cuando el monitor los tiene.
-// La barra principal no se toca.
+// (también en monitores verticales) y escritorios propios de cada secundario,
+// independientes del principal. La barra principal no se toca.
 
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {Barra} from './barra.js';
+import {Espacios} from './espacios.js';
+
+const ATAJOS = {'escritorio-siguiente': 1, 'escritorio-anterior': -1};
 
 export default class BarraSecundaria extends Extension {
     enable() {
         this._barras = new Map(); // índice de monitor → Barra
+        this._espacios = new Espacios(() => this._barras?.forEach(b => b.programar()));
+        this._settings = this.getSettings();
+        for (const [nombre, paso] of Object.entries(ATAJOS)) {
+            Main.wm.addKeybinding(nombre, this._settings, Meta.KeyBindingFlags.NONE,
+                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW, () => this._espacios.mover(paso));
+        }
         Main.layoutManager.connectObject('monitors-changed', () => this._crear(), this);
         this._crear();
     }
@@ -23,7 +34,7 @@ export default class BarraSecundaria extends Extension {
         for (const monitor of lm.monitors) {
             if (monitor.index === lm.primaryIndex)
                 continue;
-            const barra = new Barra(monitor);
+            const barra = new Barra(monitor, this._espacios);
             // affectsStruts: las ventanas maximizadas empiezan debajo de la barra.
             // trackFullscreen: se esconde si una ventana está en pantalla completa en ese monitor.
             lm.addChrome(barra, {affectsStruts: true, trackFullscreen: true});
@@ -40,8 +51,13 @@ export default class BarraSecundaria extends Extension {
     }
 
     disable() {
+        for (const nombre of Object.keys(ATAJOS))
+            Main.wm.removeKeybinding(nombre);
         Main.layoutManager.disconnectObject(this);
         this._quitar();
         this._barras = null;
+        this._espacios.destroy();
+        this._espacios = null;
+        this._settings = null;
     }
 }

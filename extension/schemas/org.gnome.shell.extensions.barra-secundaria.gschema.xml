@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.barra-secundaria" path="/org/gnome/shell/extensions/barra-secundaria/">
+    <key name="escritorio-siguiente" type="as">
+      <default><![CDATA[['<Super><Alt>Page_Down']]]></default>
+      <summary>Siguiente escritorio del monitor secundario</summary>
+    </key>
+    <key name="escritorio-anterior" type="as">
+      <default><![CDATA[['<Super><Alt>Page_Up']]]></default>
+      <summary>Escritorio anterior del monitor secundario</summary>
+    </key>
+  </schema>
+</schemalist>

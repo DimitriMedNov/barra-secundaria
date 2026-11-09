@@ -27,5 +27,8 @@ PY
 
 mkdir -p "$EXT"
 cp extension/*.js extension/metadata.json extension/stylesheet.css "$EXT/"
+mkdir -p "$EXT/schemas"
+cp extension/schemas/*.gschema.xml "$EXT/schemas/"
+glib-compile-schemas "$EXT/schemas"
 activar
 echo "Barra secundaria instalada. Cierra sesión y vuelve a entrar para que GNOME la cargue."

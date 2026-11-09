@@ -8,7 +8,7 @@ Extensión de GNOME Shell (48 a 51) que pone una barra mínima arriba de cada mo
 
 | Parte | Qué hace |
 |---|---|
-| Escritorios | Puntos para cambiar de escritorio. Solo salen si ese monitor cambia de escritorio (ver abajo). |
+| Escritorios | Escritorios propios de ese monitor, independientes del principal (ver abajo). |
 | Ventanas | Las ventanas de ese monitor. Clic = activarla; clic en la activa = minimizarla. |
 | ▦ Ordenar | Acomoda las ventanas de ese monitor sin encimarse. |
 | ⇆ Mover | Si la ventana activa está en ese monitor, la manda al principal; si está en otro, la trae. |
@@ -20,15 +20,25 @@ Extensión de GNOME Shell (48 a 51) que pone una barra mínima arriba de cada mo
 - **Monitor vertical:** filas. 2 = arriba/abajo; 3 = tres filas; 4 = 2 × 2. Nunca quedan tiras angostas.
 - La ventana activa se queda con el espacio más grande. Las maximizadas también se acomodan; las minimizadas no.
 
-## Escritorios en el monitor secundario
+## Escritorios independientes (como en macOS)
 
-GNOME, por defecto, deja los monitores secundarios fijos (no cambian de escritorio), y entonces los puntos no aparecen. Para que sí cambien:
+GNOME no deja que cada monitor tenga sus propios escritorios: o todos cambian juntos, o los secundarios se quedan fijos. Esta extensión lo simula **en modo fijo** (el normal de GNOME):
+
+- Cada monitor secundario tiene sus propios escritorios. Cambiarlos **no mueve el principal**.
+- Al cambiar, las ventanas del escritorio que dejas se minimizan y las del nuevo vuelven.
+- Siempre hay un escritorio vacío después del último usado (como GNOME), hasta 9.
+- Si eliges una ventana escondida desde Alt+Tab o la vista general, el secundario salta solo a su escritorio.
+- Atajos: **Super + Alt + Av Pág** (siguiente) y **Super + Alt + Re Pág** (anterior), en el secundario donde está la ventana activa o el puntero.
+- Las ventanas que minimizas tú se quedan minimizadas; solo se restauran las que escondió la extensión.
+- Al bloquear la pantalla se conserva todo. Si apagas la extensión, todas las ventanas vuelven a verse.
+
+Para activar el modo fijo (si lo cambiaste):
 
 ```bash
-gsettings set org.gnome.mutter workspaces-only-on-primary false
+gsettings set org.gnome.mutter workspaces-only-on-primary true
 ```
 
-Ojo: en GNOME cambiar de escritorio mueve **todos** los monitores a la vez.
+Con `false`, GNOME mueve todos los monitores juntos y los puntos de la barra pasan a ser los escritorios normales de GNOME.
 
 ## Instalar
 
