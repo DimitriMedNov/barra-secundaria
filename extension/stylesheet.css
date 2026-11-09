@@ -1,0 +1,30 @@
+/* Mismo negro y alto que la barra de arriba de GNOME. */
+.bs-barra {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 0 6px;
+  spacing: 6px;
+  font-size: 0.9em;
+}
+.bs-ventanas, .bs-derecha, .bs-escritorios { spacing: 2px; }
+
+.bs-boton, .bs-ventana, .bs-punto {
+  border-radius: 99px;
+  padding: 0 10px;
+  margin: 3px 0;
+  transition-duration: 100ms;
+}
+.bs-boton:hover, .bs-ventana:hover, .bs-punto:hover { background-color: rgba(255, 255, 255, 0.15); }
+.bs-boton:active, .bs-ventana:active { background-color: rgba(255, 255, 255, 0.25); }
+.bs-boton:focus, .bs-ventana:focus, .bs-punto:focus { box-shadow: inset 0 0 0 2px #78aeed; }
+
+.bs-ventana { max-width: 220px; }
+.bs-ventana-caja { spacing: 6px; }
+.bs-ventana-activa { background-color: rgba(255, 255, 255, 0.2); }
+.bs-ventana-minimizada { color: rgba(255, 255, 255, 0.55); }
+
+.bs-punto { padding: 0 6px; }
+.bs-punto-marca { width: 7px; height: 7px; border-radius: 99px; background-color: rgba(255, 255, 255, 0.5); }
+.bs-punto-activo .bs-punto-marca { width: 22px; background-color: #ffffff; }
+
+.bs-hora { font-weight: bold; font-feature-settings: "tnum"; padding: 0 8px 0 6px; }

@@ -1,0 +1,8 @@
+{
+  "uuid": "barra-secundaria@dimitrimednov.github.io",
+  "name": "Barra secundaria",
+  "description": "Barra mínima arriba de cada monitor secundario: reloj, ventanas de ese monitor, mover ventana entre monitores, ordenar ventanas (también en monitores verticales) y escritorios.",
+  "shell-version": ["48", "49", "50", "51"],
+  "url": "https://github.com/DimitriMedNov/barra-secundaria",
+  "version": 1
+}
